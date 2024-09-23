@@ -2,7 +2,6 @@
 
 namespace Hotel_Listing.Models
 {
-    
     public class CreateCountryDTO
     {
         [Required]

@@ -1,6 +1,8 @@
 using Hotel_Listing.Data;
+using Hotel_Listing.IRepository;
 using Hotel_Listing.Properties.Configurations;
-using Microsoft.EntityFrameworkCore;
+using Hotel_Listing.Repository;
+using Microsoft.EntityFrameworkCore; 
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,11 +17,13 @@ builder.Services.AddCors(p => p.AddPolicy("CorsAllowAllPolicy",builder =>
         .AllowAnyHeader();
     }));
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
+builder.Services.AddTransient<IUnitOfWork,UnitOfWork>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+//builder.Services.AddNewtonSoftJson(op=> op.SerializerSettings.ReferenceLoopHandling= Newtonsof);
 
 var logger = new LoggerConfiguration()
   .ReadFrom.Configuration(builder.Configuration)
