@@ -17,13 +17,15 @@ namespace Hotel_Listing.Repository
         }
         public async Task Delete(int id)
         {
-           T entity = await _db.FindAsync(id);
+            T entity = await _db.FindAsync(id);
             _db.Remove(entity);
+            await _context.SaveChangesAsync();
         }
 
-        public void DeleteRange(IEnumerable<T> entities)
+        public async void DeleteRange(IEnumerable<T> entities)
         {
             _db.RemoveRange(entities);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<T> Get(Expression<Func<T, bool>> expression, List<string> includes = null)
@@ -43,7 +45,8 @@ namespace Hotel_Listing.Repository
         {
 
             IQueryable<T> query = _db;
-            if (expression != null) {
+            if (expression != null)
+            {
                 query = query.Where(expression);
             }
 
@@ -54,7 +57,7 @@ namespace Hotel_Listing.Repository
                     query = query.Include(include);
                 }
             }
-            if(orderBy != null)
+            if (orderBy != null)
             {
                 query = orderBy(query);
             }
@@ -63,20 +66,23 @@ namespace Hotel_Listing.Repository
 
         public async Task Insert(T entity)
         {
-           await _db.AddAsync(entity);
+            await _db.AddAsync(entity);
+            await _context.SaveChangesAsync();
         }
 
         public async Task InsertRange(IEnumerable<T> entity)
         {
-            await _db.AddRangeAsync(entity);    
+            await _db.AddRangeAsync(entity);
+            await _context.SaveChangesAsync();
         }
 
         public void Update(T entity)
         {
             _db.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
+
         }
 
-        
+
     }
 }

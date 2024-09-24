@@ -21,7 +21,7 @@ namespace Hotel_Listing.Models
     public class HotelDTO : CreateHotelDTO
     {
         public int Id { get; set; }
-        //public HotelDTO Hotels { get; set; }
+        public CountryDTO Country { get; set; }
 
     }
 }

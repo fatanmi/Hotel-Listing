@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Hotel_Listing
