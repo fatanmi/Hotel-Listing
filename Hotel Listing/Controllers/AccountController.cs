@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using Hotel_Listing.Data;
 using Hotel_Listing.Models;
 using Hotel_Listing.Services;
@@ -7,8 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Hotel_Listing.Controllers
 {
-    [Route("api/[controller]")]
+    
     [ApiController]
+    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
     public class AccountController : ControllerBase
     {
         private readonly UserManager<ApiUser> _userManager;
@@ -71,21 +74,15 @@ namespace Hotel_Listing.Controllers
             {
                 return BadRequest(ModelState);
             }
-            try
+
+            //var result = await _authManager.ValidateUser(userDTO);
+            if (!await _authManager.ValidateUser(userDTO))
             {
-                //var result = await _authManager.ValidateUser(userDTO);
-                if (!await _authManager.ValidateUser(userDTO))
-                {
-                    return Unauthorized("User Login Attempt failed");
-                }
-                return Accepted(new { Token = await _authManager.CreateToken() });
+                return Unauthorized("User Login Attempt failed");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(Login)}");
-                return Problem($"Something went wrong in the {nameof(Login)}", statusCode: 500);
-            }
-            return Accepted();
+            return Accepted(new { Token = await _authManager.CreateToken() });
+
+
         }
     }
 }

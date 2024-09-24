@@ -4,7 +4,8 @@ using Hotel_Listing.IRepository;
 using Hotel_Listing.Properties.Configurations;
 using Hotel_Listing.Repository;
 using Hotel_Listing.Services;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,19 +13,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddCors(p => p.AddPolicy("CorsAllowAllPolicy",builder =>
+builder.Services.AddCors(p => p.AddPolicy("CorsAllowAllPolicy", builder =>
     {
         builder.WithOrigins("*")
         .AllowAnyMethod()
         .AllowAnyHeader();
     }));
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
-builder.Services.AddTransient<IUnitOfWork,UnitOfWork>();
-builder.Services.AddTransient<IAuthManager,AuthManager>();
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+builder.Services.AddTransient<IAuthManager, AuthManager>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
 
+builder.Services.AddResponseCaching();
+
+builder.Services.ConfigureVersioning();
+builder.Services.ConfigureCacheHeader();
+
 builder.Services.AddAuthentication();
+builder.Services.AddApiVersioning();
 builder.Services.ConfigureIdentity();
 
 builder.Services.ConfigureJWT(builder.Configuration);
@@ -33,7 +40,9 @@ builder.Services.ConfigureJWT(builder.Configuration);
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
 
 
 var logger = new LoggerConfiguration()
@@ -53,10 +62,15 @@ var app = builder.Build();
 //}
 app.UseSwagger();
 app.UseSwaggerUI();
+app.ConfigureExceptionHandler();
+
 app.UseCors("CorsAllowAllPolicy");
+//app.UseResponseCaching();
+app.UseHttpCacheHeaders();
 try
 {
     app.UseHttpsRedirection();
+
 
     app.UseAuthentication();
 
