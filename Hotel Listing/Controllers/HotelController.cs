@@ -3,6 +3,7 @@ using Hotel_Listing.IRepository;
 using Hotel_Listing.Data;
 using Microsoft.AspNetCore.Mvc;
 using Hotel_Listing.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Hotel_Listing.Controllers
 {
@@ -38,16 +39,17 @@ namespace Hotel_Listing.Controllers
                 return StatusCode(500, "Internal server error. Please try again later");
             }
         }
-        [HttpGet("id:int")]
+        [Authorize]
+        [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetHotel(int Id)
         {
             try
             {
-            Hotel hotel = await _unitOfWork.Hotels.Get(q => q.Id == Id);
-            var result = _mapper.Map<HotelDTO>(hotel);
-            return Ok(result);
+                Hotel hotel = await _unitOfWork.Hotels.Get(q => q.Id == Id);
+                var result = _mapper.Map<HotelDTO>(hotel);
+                return Ok(result);
 
             }
             catch (Exception ex)

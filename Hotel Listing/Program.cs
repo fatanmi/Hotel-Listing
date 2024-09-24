@@ -3,6 +3,7 @@ using Hotel_Listing.Data;
 using Hotel_Listing.IRepository;
 using Hotel_Listing.Properties.Configurations;
 using Hotel_Listing.Repository;
+using Hotel_Listing.Services;
 using Microsoft.EntityFrameworkCore; 
 using Serilog;
 
@@ -19,11 +20,14 @@ builder.Services.AddCors(p => p.AddPolicy("CorsAllowAllPolicy",builder =>
     }));
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
 builder.Services.AddTransient<IUnitOfWork,UnitOfWork>();
+builder.Services.AddTransient<IAuthManager,AuthManager>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
 
 builder.Services.AddAuthentication();
 builder.Services.ConfigureIdentity();
+
+builder.Services.ConfigureJWT(builder.Configuration);
 
 
 
@@ -53,6 +57,8 @@ app.UseCors("CorsAllowAllPolicy");
 try
 {
     app.UseHttpsRedirection();
+
+    app.UseAuthentication();
 
     app.UseAuthorization();
 

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Hotel_Listing.Data;
 using Hotel_Listing.Models;
+using Hotel_Listing.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,12 +15,13 @@ namespace Hotel_Listing.Controllers
         //private readonly SignInManager<ApiUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IMapper _mapper;
-        public AccountController(UserManager<ApiUser> userManager, /*SignInManager<ApiUser> signInManager,*/ ILogger<AccountController> logger, IMapper mapper)
+        private readonly IAuthManager _authManager;
+        public AccountController(UserManager<ApiUser> userManager, IAuthManager authManager, /*SignInManager<ApiUser> signInManager,*/ ILogger<AccountController> logger, IMapper mapper)
         {
             _userManager = userManager;
-            //_signInManager = signInManager;
             _logger = logger;
             _mapper = mapper;
+            _authManager = authManager;
         }
 
         [HttpPost]
@@ -36,18 +38,22 @@ namespace Hotel_Listing.Controllers
             try
             {
                 var user = _mapper.Map<ApiUser>(userDTO);
-                user.Email = userDTO.Email;
-                var result = await _userManager.CreateAsync(user,userDTO.Password);
+                user.UserName = userDTO.Email;
+                var result = await _userManager.CreateAsync(user, userDTO.Password);
                 if (!result.Succeeded)
                 {
                     foreach (var error in result.Errors)
                     {
                         ModelState.AddModelError(error.Code, error.Description);
                     }
-                        return BadRequest(ModelState);
+                    return BadRequest(ModelState);
                 }
+
+                await _userManager.AddToRolesAsync(user, userDTO.Roles);
+
                 return Accepted();
             }
+
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Something went wrong in the {nameof(Register)}");
@@ -55,30 +61,31 @@ namespace Hotel_Listing.Controllers
             return Accepted();
         }
 
-        //[HttpPost]
-        //[Route("login")]
-        //public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)
-        //{
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)
+        {
 
-        //    _logger.LogInformation($"Login Attempt for {userDTO.Email}");
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-        //    try
-        //    {
-        //        var result = await _signInManager.PasswordSignInAsync(, userDTO.Password, false, false);
-        //        if (!result.Succeeded)
-        //        {
-        //            return Unauthorized("User Login Attempt failed");
-        //        }
-        //        return Accepted();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"Something went wrong in the {nameof(Login)}");
-        //    }
-        //    return Accepted();
-        //}
+            _logger.LogInformation($"Login Attempt for {userDTO.Email}");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                //var result = await _authManager.ValidateUser(userDTO);
+                if (!await _authManager.ValidateUser(userDTO))
+                {
+                    return Unauthorized("User Login Attempt failed");
+                }
+                return Accepted(new { Token = await _authManager.CreateToken() });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Something went wrong in the {nameof(Login)}");
+                return Problem($"Something went wrong in the {nameof(Login)}", statusCode: 500);
+            }
+            return Accepted();
+        }
     }
 }
