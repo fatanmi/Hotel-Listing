@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Hotel_Listing.IRepository;
 using Hotel_Listing.Data;
-using Hotel_Listing.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Hotel_Listing.Models;
 
 namespace Hotel_Listing.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class HotelController : Controller
     {
         private readonly ILogger<HotelController> _logger;

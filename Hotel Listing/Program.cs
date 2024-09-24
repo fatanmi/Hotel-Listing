@@ -1,3 +1,4 @@
+using Hotel_Listing;
 using Hotel_Listing.Data;
 using Hotel_Listing.IRepository;
 using Hotel_Listing.Properties.Configurations;
@@ -20,10 +21,16 @@ builder.Services.AddAutoMapper(typeof(MapperInitializer));
 builder.Services.AddTransient<IUnitOfWork,UnitOfWork>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
+
+builder.Services.AddAuthentication();
+builder.Services.ConfigureIdentity();
+
+
+
 // Add services to the container.
 
 builder.Services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-//builder.Services.AddNewtonSoftJson(op=> op.SerializerSettings.ReferenceLoopHandling= Newtonsof);
+
 
 var logger = new LoggerConfiguration()
   .ReadFrom.Configuration(builder.Configuration)
