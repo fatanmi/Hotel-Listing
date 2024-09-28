@@ -44,7 +44,6 @@ builder.Services.AddControllers()
     .AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
 
-
 var logger = new LoggerConfiguration()
   .ReadFrom.Configuration(builder.Configuration)
   .Enrich.FromLogContext()
@@ -78,6 +77,7 @@ try
 
     app.MapControllers();
 
+    ApplyMigration();
     app.Run();
 }
 catch (Exception ex)
@@ -88,4 +88,14 @@ finally
 {
     Log.CloseAndFlush();
 }
-
+void ApplyMigration()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var _db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        if (_db.Database.GetPendingMigrations().Count() > 0)
+        {
+            _db.Database.Migrate();
+        }
+    }
+}
