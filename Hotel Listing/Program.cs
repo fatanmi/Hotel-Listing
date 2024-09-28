@@ -78,6 +78,7 @@ try
     app.MapControllers();
 
     ApplyMigration();
+
     app.Run();
 }
 catch (Exception ex)
@@ -90,9 +91,9 @@ finally
 }
 void ApplyMigration()
 {
-    using (var scope = app.Services.CreateScope())
+    using (IServiceScope scope = app.Services.CreateScope())
     {
-        var _db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+        DatabaseContext _db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
         if (_db.Database.GetPendingMigrations().Count() > 0)
         {
             _db.Database.Migrate();
